@@ -1,0 +1,53 @@
+# Byte-compiled / optimized / compiled files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.eggs/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Database
+*.sqlite3
+*.db
+
+# Media and static files (generated or managed by Django)
+media/
+static/
+
+# IDE-specific files
+.idea/  # PyCharm
+.vscode/ # VS Code
+*.iml   # IntelliJ IDEA
+
+# Environment variables and settings
+.env
+.flaskenv
+local_settings.py
+
+# Logs and temporary files
+*.log
+*.pot
+tmp/
+celerybeat-schedule
+
+# Testing and coverage reports
+.coverage
+.tox/
+htmlcov/
+.pytest_cache/
+
+# OS-specific files
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# Deployment-related files
+*.tar.gz
+*.zip
+
+# Django migrations cache (if not tracking all migration files)
+# migrations/**/__pycache__/
