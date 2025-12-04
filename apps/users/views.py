@@ -1,11 +1,13 @@
 from django.http import JsonResponse
+from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import SignupSerializer, LoginSerializer
+from .serializers import FullUserSerializer, SignupSerializer, LoginSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Student, Staff
+from .models import Student, Staff, User
+from rest_framework.permissions import IsAuthenticated
 
 
 def home(req):
@@ -89,3 +91,18 @@ class LoginView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class UserListView(ListAPIView):
+    serializer_class = FullUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = User.objects.all().order_by("id")
+
+        usertype = self.request.query_params.get("usertype")
+
+        if usertype in ["student", "staff", "admin"]:
+            queryset = queryset.filter(usertype=usertype)
+
+        return queryset
