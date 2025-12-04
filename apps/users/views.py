@@ -4,9 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .serializers import SignupSerializer, LoginSerializer
-from django.contrib.auth import login
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from .models import Student, Staff
 
 
 def home(req):
@@ -17,7 +16,25 @@ class SignupView(APIView):
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        # Create user
         user = serializer.save()
+        usertype = serializer.validated_data.get("usertype", "student")
+
+        # Create profile depending on role
+        if usertype == "student":
+            Student.objects.create(
+                user=user,
+                prn=serializer.validated_data.get("prn", ""),
+                branch=serializer.validated_data.get("branch", ""),
+                hostel=serializer.validated_data.get("hostel", ""),
+            )
+        elif usertype == "staff":
+            Staff.objects.create(
+                user=user,
+                department=serializer.validated_data.get("department", ""),
+                role=serializer.validated_data.get("role", "other"),
+            )
 
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
@@ -31,6 +48,7 @@ class SignupView(APIView):
                     "email": user.email,
                     "first_name": user.first_name,
                     "last_name": user.last_name,
+                    "usertype": user.usertype,
                 },
                 "tokens": {
                     "refresh": str(refresh),

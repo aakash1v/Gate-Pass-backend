@@ -5,14 +5,34 @@ from .models import User, Student, Staff
 
 class StudentInline(admin.StackedInline):
     model = Student
-    can_delete = False
     extra = 1
+
+    # Hide inline if usertype is not student
+    def has_view_or_change_permission(self, request, obj=None):
+        if obj and obj.usertype == "student":
+            return True
+        return False
+
+    def has_add_permission(self, request, obj):
+        if obj and obj.usertype == "student":
+            return True
+        return False
 
 
 class StaffInline(admin.StackedInline):
     model = Staff
-    can_delete = False
     extra = 1
+
+    # Hide inline if usertype is not staff
+    def has_view_or_change_permission(self, request, obj=None):
+        if obj and obj.usertype == "staff":
+            return True
+        return False
+
+    def has_add_permission(self, request, obj):
+        if obj and obj.usertype == "staff":
+            return True
+        return False
 
 
 @admin.register(User)
@@ -21,10 +41,7 @@ class UserAdmin(BaseUserAdmin):
 
     fieldsets = (
         (None, {"fields": ("username", "password")}),
-        (
-            "Personal info",
-            {"fields": ("first_name", "last_name", "email", "dob", "mobile")},
-        ),
+        ("Personal info", {"fields": ("first_name", "last_name", "email", "dob", "mobile")}),
         ("Role", {"fields": ("usertype",)}),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser")}),
     )
@@ -47,25 +64,6 @@ class UserAdmin(BaseUserAdmin):
         ),
     )
 
-    def get_inlines(self, request, obj=None):
-        # If editing existing user
-        if obj:
-            if obj.usertype == "student":
-                return [StudentInline]
-            elif obj.usertype == "staff":
-                return [StaffInline]
-            return []
+    # Inlines always included — Django handles visibility
+    inlines = [StudentInline, StaffInline]
 
-        # If adding a new user (obj is None)
-        usertype = request.POST.get("usertype")
-
-        if usertype == "student":
-            return [StudentInline]
-        elif usertype == "staff":
-            return [StaffInline]
-
-        return []
-
-    def get_formsets_with_inlines(self, request, obj=None):
-        for inline in self.get_inlines(request, obj):
-            yield inline(self.model, self.admin_site)
