@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     # REST + Schema
     "rest_framework",
     "drf_spectacular",
-    "drf_spectacular_sidecar",
+    # "drf_spectacular_sidecar",
 ]
 
 # -----------------------------------------------------

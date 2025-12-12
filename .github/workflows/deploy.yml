@@ -1,0 +1,29 @@
+name: Deploy GatePass Backend
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: SSH Deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ secrets.PROJECT_PATH }}
+            git pull origin main
+            uv sync
+            uv run python manage.py migrate --noinput
+            uv run python manage.py collectstatic --noinput
+            sudo systemctl restart gatepass
+            sudo systemctl status gatepass --no-pager
+            sudo journalctl -u gatepass -n 30 --no-pager
+
