@@ -31,6 +31,7 @@ INSTALLED_APPS = [
 
     # Your app(s)
     "apps.users",
+    "apps.leave",
 
     # REST + Schema
     "rest_framework",
@@ -136,9 +137,13 @@ STATICFILES_FINDERS = [
 # Internationalization
 # -----------------------------------------------------
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"   # your local timezone
 USE_I18N = True
-USE_TZ = True
+USE_TZ = True                # store timestamps in UTC internally
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 

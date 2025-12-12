@@ -24,6 +24,9 @@ class Student(models.Model):
     branch = models.CharField(max_length=100)
     hostel = models.CharField(max_length=100)
 
+    def __str__(self):
+        return f"{self.user.username} ({self.prn})"
+
 
 class Staff(models.Model):
     user = models.OneToOneField(
