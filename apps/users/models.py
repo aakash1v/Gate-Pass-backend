@@ -24,6 +24,9 @@ class Student(models.Model):
     branch = models.CharField(max_length=100)
     hostel = models.CharField(max_length=100)
 
+    parents_name = models.CharField(max_length=250, null=True, blank=True)
+    parents_number = models.CharField(max_length=250, null=True, blank=True)
+
     def __str__(self):
         return f"{self.user.username} ({self.prn})"
 

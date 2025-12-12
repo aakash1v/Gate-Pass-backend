@@ -7,8 +7,6 @@ class LeaveRequest(models.Model):
     subject = models.CharField(max_length=250)
     description = models.TextField()
 
-    parents_name = models.CharField(max_length=250)
-    parents_number = models.CharField(max_length=20)
     attachment = models.FileField(upload_to="media/")
 
     approvedby_warden = models.BooleanField(default=False)
@@ -21,10 +19,10 @@ class LeaveRequest(models.Model):
     ending_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
-    student = models.ForeignKey("users.Student", on_delete=models.CASCADE)
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.subject} - {self.student}"
+        return f"{self.subject} - {self.user.username}"
 
 
 class Leave(models.Model):
