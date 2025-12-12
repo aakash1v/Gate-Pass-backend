@@ -18,6 +18,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            export PATH="$PATH:/home/aakash/.local/bin"
             cd ${{ secrets.PROJECT_PATH }}
             git pull origin main
             uv sync
@@ -25,5 +26,4 @@ jobs:
             uv run python manage.py collectstatic --noinput
             sudo systemctl restart gatepass
             sudo systemctl status gatepass --no-pager
-            sudo journalctl -u gatepass -n 30 --no-pager
 
