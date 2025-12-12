@@ -3,7 +3,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # -----------------------------------------------------
-# Core Settings
+# Core
 # -----------------------------------------------------
 SECRET_KEY = "django-insecure-urlmsnh5hz0jox1^ykhapm0un+4ej7!n#=w#pwk&2=f%@x&!^s"
 DEBUG = True
@@ -14,7 +14,10 @@ ALLOWED_HOSTS = [
     "p4.project1.space",
 ]
 
+# When frontend makes POST requests, CSRF must trust these origins
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
     "https://p4.project1.space",
 ]
 
@@ -29,20 +32,23 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Your app(s)
+    # Project apps
     "apps.users",
     "apps.leave",
 
-    # REST + Schema
+    # REST & Schema
     "rest_framework",
     "drf_spectacular",
-    # "drf_spectacular_sidecar",
+
+    # CORS
+    "corsheaders",
 ]
 
 # -----------------------------------------------------
 # Middleware
 # -----------------------------------------------------
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",   # must be at the top
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -60,7 +66,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],  # Optional place for templates
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -85,7 +91,7 @@ DATABASES = {
 }
 
 # -----------------------------------------------------
-# Auth Configuration
+# Authentication
 # -----------------------------------------------------
 AUTH_USER_MODEL = "users.user"
 
@@ -94,7 +100,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # -----------------------------------------------------
-# REST Framework + JWT + Spectacular
+# Django REST + JWT
 # -----------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -105,7 +111,7 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Your Project API",
-    "DESCRIPTION": "API documentation for your awesome system.",
+    "DESCRIPTION": "API documentation.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SECURITY": [{"BearerAuth": []}],
@@ -121,12 +127,25 @@ SPECTACULAR_SETTINGS = {
 }
 
 # -----------------------------------------------------
-# Static Files
+# CORS Settings (Fix for your error)
+# -----------------------------------------------------
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://p4.project1.space",
+]
+
+# Allow cookies/JWT if needed
+CORS_ALLOW_CREDENTIALS = True
+
+# -----------------------------------------------------
+# Static & Media
 # -----------------------------------------------------
 STATIC_URL = "/static/"
-
-# The missing piece earlier — Django needs this path!
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -137,13 +156,9 @@ STATICFILES_FINDERS = [
 # Internationalization
 # -----------------------------------------------------
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "Asia/Kolkata"   # your local timezone
+TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
-USE_TZ = True                # store timestamps in UTC internally
+USE_TZ = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
 
