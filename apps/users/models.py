@@ -40,9 +40,9 @@ class Staff(models.Model):
         max_length=20,
         choices=[
             ("teacher", "Teacher"),
-            ("hod", "Head of Department"),
+            ("hod", "HOD"),
             ("warden", "Warden"),
-            ("dean", "Principal"),
+            ("dean", "Dean"),
             ("other", "Other"),
         ]
     )

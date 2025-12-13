@@ -1,30 +1,34 @@
 from pathlib import Path
+import os
+from datetime import timedelta
+from dotenv import load_dotenv
+
+# -----------------------------------------------------
+# Load environment variables
+# -----------------------------------------------------
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # -----------------------------------------------------
 # Core
 # -----------------------------------------------------
-SECRET_KEY = "django-insecure-urlmsnh5hz0jox1^ykhapm0un+4ej7!n#=w#pwk&2=f%@x&!^s"
-DEBUG = True
+SECRET_KEY = os.getenv("SECRET_KEY")
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "p4.project1.space",
-]
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# When frontend makes POST requests, CSRF must trust these origins
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://p4.project1.space",
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+
+# -----------------------------------------------------
+# CSRF
+# -----------------------------------------------------
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 # -----------------------------------------------------
 # Installed Apps
 # -----------------------------------------------------
 INSTALLED_APPS = [
+    # Django
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -36,11 +40,10 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.leave",
 
-    # REST & Schema
+    # Third-party
     "rest_framework",
+    "rest_framework.authtoken",
     "drf_spectacular",
-
-    # CORS
     "corsheaders",
 ]
 
@@ -48,7 +51,7 @@ INSTALLED_APPS = [
 # Middleware
 # -----------------------------------------------------
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",   # must be at the top
+    "corsheaders.middleware.CorsMiddleware",  # must be first
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -93,25 +96,50 @@ DATABASES = {
 # -----------------------------------------------------
 # Authentication
 # -----------------------------------------------------
-AUTH_USER_MODEL = "users.user"
+AUTH_USER_MODEL = "users.User"
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
 # -----------------------------------------------------
-# Django REST + JWT
+# Django REST Framework
 # -----------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
+# -----------------------------------------------------
+# JWT Configuration
+# -----------------------------------------------------
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=int(os.getenv("ACCESS_TOKEN_LIFETIME", 15))
+    ),
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        minutes=int(os.getenv("REFRESH_TOKEN_LIFETIME", 10080))
+    ),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_TOKEN_CLASSES": (
+        "rest_framework_simplejwt.tokens.AccessToken",
+    ),
+}
+
+# -----------------------------------------------------
+# API Schema (Swagger / OpenAPI)
+# -----------------------------------------------------
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Your Project API",
-    "DESCRIPTION": "API documentation.",
+    "TITLE": "Gate Pass API",
+    "DESCRIPTION": "API documentation for Gate Pass system",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SECURITY": [{"BearerAuth": []}],
@@ -127,15 +155,9 @@ SPECTACULAR_SETTINGS = {
 }
 
 # -----------------------------------------------------
-# CORS Settings (Fix for your error)
+# CORS
 # -----------------------------------------------------
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://p4.project1.space",
-]
-
-# Allow cookies/JWT if needed
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
 CORS_ALLOW_CREDENTIALS = True
 
 # -----------------------------------------------------
@@ -160,7 +182,8 @@ TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
+# -----------------------------------------------------
+# Default PK
+# -----------------------------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-AUTH_USER_MODEL = "users.User"
 

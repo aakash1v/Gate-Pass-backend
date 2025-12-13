@@ -7,7 +7,7 @@ from rest_framework import status
 from .serializers import FullUserSerializer, SignupSerializer, LoginSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Student, Staff, User
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
 def home(req):
@@ -15,30 +15,13 @@ def home(req):
 
 
 class SignupView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        # Create user
         user = serializer.save()
-        usertype = serializer.validated_data.get("usertype", "student")
 
-        # Create profile depending on role
-        if usertype == "student":
-            Student.objects.create(
-                user=user,
-                prn=serializer.validated_data.get("prn", ""),
-                branch=serializer.validated_data.get("branch", ""),
-                hostel=serializer.validated_data.get("hostel", ""),
-            )
-        elif usertype == "staff":
-            Staff.objects.create(
-                user=user,
-                department=serializer.validated_data.get("department", ""),
-                role=serializer.validated_data.get("role", "other"),
-            )
-
-        # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
 
         return Response(
@@ -62,6 +45,8 @@ class SignupView(APIView):
 
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -107,3 +92,11 @@ class UserListView(ListAPIView):
             queryset = queryset.filter(usertype=usertype)
 
         return queryset
+
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = FullUserSerializer(request.user)
+        return Response(serializer.data)

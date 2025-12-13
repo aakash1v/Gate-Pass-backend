@@ -1,3 +1,4 @@
+from apps.users.models import Staff, Student
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 
@@ -6,6 +7,17 @@ User = get_user_model()
 
 class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+
+    # Student fields
+    prn = serializers.CharField(required=False, allow_blank=True)
+    branch = serializers.CharField(required=False, allow_blank=True)
+    hostel = serializers.CharField(required=False, allow_blank=True)
+    parents_name = serializers.CharField(required=False, allow_blank=True)
+    parents_number = serializers.CharField(required=False, allow_blank=True)
+
+    # Staff fields
+    department = serializers.CharField(required=False, allow_blank=True)
+    role = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
@@ -19,14 +31,73 @@ class SignupSerializer(serializers.ModelSerializer):
             "dob",
             "mobile",
             "usertype",
+
+            # student profile
+            "prn",
+            "branch",
+            "hostel",
+            "parents_name",
+            "parents_number",
+
+            # staff profile
+            "department",
+            "role",
         ]
 
     def create(self, validated_data):
         password = validated_data.pop("password")
+
+        # student fields
+        prn = validated_data.pop("prn", None)
+        branch = validated_data.pop("branch", None)
+        hostel = validated_data.pop("hostel", None)
+        parents_name = validated_data.pop("parents_name", None)
+        parents_number = validated_data.pop("parents_number", None)
+
+        # staff fields
+        department = validated_data.pop("department", None)
+        role = validated_data.pop("role", "other")
+
         user = User(**validated_data)
         user.set_password(password)
         user.save()
+
+        if user.usertype == "student":
+            Student.objects.create(
+                user=user,
+                prn=prn,
+                branch=branch,
+                hostel=hostel,
+                parents_name=parents_name,
+                parents_number=parents_number,
+            )
+
+        elif user.usertype == "staff":
+            Staff.objects.create(
+                user=user,
+                department=department,
+                role=role.lower(),
+            )
+
         return user
+
+    def validate(self, data):
+        usertype = data.get("usertype")
+
+        if usertype == "student":
+            prn = data.get("prn")
+
+            if not prn:
+                raise serializers.ValidationError(
+                    {"prn": "PRN is required for student signup"}
+                )
+
+            if Student.objects.filter(prn=prn).exists():
+                raise serializers.ValidationError(
+                    {"prn": "A student with this PRN already exists"}
+                )
+
+        return data
 
 
 class LoginSerializer(serializers.Serializer):
@@ -66,21 +137,25 @@ class FullUserSerializer(serializers.ModelSerializer):
         ]
 
     def get_student_profile(self, obj):
-        if hasattr(obj, "student_profile"):
+        try:
             s = obj.student_profile
             return {
                 "prn": s.prn,
                 "branch": s.branch,
                 "hostel": s.hostel,
+                "parents_name": s.parents_name,
+                "parents_number": s.parents_number,
             }
-        return None
+        except:
+            return None
 
     def get_staff_profile(self, obj):
-        if hasattr(obj, "staff_profile"):
+        try:
             s = obj.staff_profile
             return {
                 "department": s.department,
                 "role": s.role,
                 "admin_approved": s.admin_approved,
             }
-        return None
+        except:
+            return None
