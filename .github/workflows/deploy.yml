@@ -18,12 +18,13 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            script: |
             export PATH="$PATH:/home/aakash/.local/bin"
             cd ${{ secrets.PROJECT_PATH }}
             git pull origin main
-            uv sync
+            uv sync --frozen
             uv run python manage.py migrate --noinput
             uv run python manage.py collectstatic --noinput
-            sudo systemctl restart gatepass
-            sudo systemctl status gatepass --no-pager
+            systemctl restart gatepass
+            systemctl status gatepass --no-pager
 
