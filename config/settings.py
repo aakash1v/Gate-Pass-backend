@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     # Project apps
     "apps.users",
     "apps.leave",
+    "apps.core",
 
     # Third-party
     "rest_framework",

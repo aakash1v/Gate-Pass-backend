@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Student, Staff
+from .models import User, Student, Staff, WardenProfile
 
 
 class StudentInline(admin.StackedInline):
@@ -47,3 +47,29 @@ class UserAdmin(BaseUserAdmin):
 
     # Inlines always included — Django handles visibility
     inlines = [StudentInline, StaffInline]
+
+
+@admin.register(WardenProfile)
+class WardenProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "get_username",
+        "get_department",
+        "office_phone",
+        "office_location",
+    )
+
+    search_fields = (
+        "staff__user__username",
+        "staff__user__first_name",
+        "staff__user__last_name",
+    )
+
+    def get_username(self, obj):
+        return obj.staff.user.username
+
+    get_username.short_description = "Username"
+
+    def get_department(self, obj):
+        return obj.staff.department
+
+    get_department.short_description = "Department"
