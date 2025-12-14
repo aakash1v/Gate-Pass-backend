@@ -1,5 +1,7 @@
+from apps.notifications.services import send_leave_status_email
 from django.db import models
 from django.utils import timezone
+import uuid
 
 
 class LeaveRequest(models.Model):
@@ -62,30 +64,90 @@ class LeaveRequest(models.Model):
 
     def update_final_status(self):
         if self.type == "Urgent":
-            if any([
-                self.approvedby_teacher,
-                self.approvedby_hod,
-                self.approvedby_warden,
-            ]):
+            if any(
+                [
+                    self.approvedby_teacher,
+                    self.approvedby_hod,
+                    self.approvedby_warden,
+                ]
+            ):
                 self.final_status = "Approved"
+                send_leave_status_email(self.user, self)
         else:
-            if all([
-                self.approvedby_teacher,
-                self.approvedby_hod,
-                self.approvedby_warden,
-            ]):
+            if all(
+                [
+                    self.approvedby_teacher,
+                    self.approvedby_hod,
+                    self.approvedby_warden,
+                ]
+            ):
                 self.final_status = "Approved"
+                send_leave_status_email(self.user, self)
 
 
-class Leave(models.Model):
+class GatePass(models.Model):
+    STATUS_CHOICES = [
+        ("Active", "Active"),
+        ("Used", "Used"),
+        ("Expired", "Expired"),
+        ("Revoked", "Revoked"),
+    ]
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
     leave_request = models.OneToOneField(
         LeaveRequest,
         on_delete=models.CASCADE,
-        related_name="final_leave",
+        related_name="gatepass",
     )
-    created_at = models.DateTimeField(default=timezone.now)
 
-    student = models.ForeignKey("users.Student", on_delete=models.CASCADE)
+    student = models.ForeignKey(
+        "users.Student",
+        on_delete=models.CASCADE,
+        related_name="gatepasses",
+    )
+
+    issued_at = models.DateTimeField(auto_now_add=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="Active",
+    )
+
+    issued_by = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="issued_gatepasses",
+    )
+
+    def valid_from(self):
+        return self.leave_request.starting_date
+
+    def valid_until(self):
+        return self.leave_request.ending_date
+
+    def is_valid(self):
+        now = timezone.now()
+        return (
+            self.status == "Active"
+            and self.leave_request.is_approved()
+            and self.valid_from() <= now <= self.valid_until()
+        )
+
+    def refresh_status(self):
+        now = timezone.now()
+
+        if self.status == "Active" and now > self.valid_until():
+            self.status = "Expired"
+            self.save(update_fields=["status"])
 
     def __str__(self):
-        return f"Leave for {self.student} ({self.leave_request.subject})"
+        return f"GatePass {self.id} - {self.student}"
+

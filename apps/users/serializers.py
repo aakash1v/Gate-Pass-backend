@@ -10,13 +10,10 @@ class SignupSerializer(serializers.ModelSerializer):
 
     # Student fields
     prn = serializers.CharField(required=False, allow_blank=True)
-    branch = serializers.CharField(required=False, allow_blank=True)
-    hostel = serializers.CharField(required=False, allow_blank=True)
     parents_name = serializers.CharField(required=False, allow_blank=True)
     parents_number = serializers.CharField(required=False, allow_blank=True)
 
     # Staff fields
-    department = serializers.CharField(required=False, allow_blank=True)
     role = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
@@ -34,13 +31,10 @@ class SignupSerializer(serializers.ModelSerializer):
 
             # student profile
             "prn",
-            "branch",
-            "hostel",
             "parents_name",
             "parents_number",
 
             # staff profile
-            "department",
             "role",
         ]
 
@@ -49,13 +43,10 @@ class SignupSerializer(serializers.ModelSerializer):
 
         # student fields
         prn = validated_data.pop("prn", None)
-        branch = validated_data.pop("branch", None)
-        hostel = validated_data.pop("hostel", None)
         parents_name = validated_data.pop("parents_name", None)
         parents_number = validated_data.pop("parents_number", None)
 
         # staff fields
-        department = validated_data.pop("department", None)
         role = validated_data.pop("role", "other")
 
         user = User(**validated_data)
@@ -66,8 +57,6 @@ class SignupSerializer(serializers.ModelSerializer):
             Student.objects.create(
                 user=user,
                 prn=prn,
-                branch=branch,
-                hostel=hostel,
                 parents_name=parents_name,
                 parents_number=parents_number,
             )
@@ -75,7 +64,6 @@ class SignupSerializer(serializers.ModelSerializer):
         elif user.usertype == "staff":
             Staff.objects.create(
                 user=user,
-                department=department,
                 role=role.lower(),
             )
 
@@ -141,8 +129,6 @@ class FullUserSerializer(serializers.ModelSerializer):
             s = obj.student_profile
             return {
                 "prn": s.prn,
-                # "branch": s.branch,
-                # "hostel": s.hostel,
                 "parents_name": s.parents_name,
                 "parents_number": s.parents_number,
             }

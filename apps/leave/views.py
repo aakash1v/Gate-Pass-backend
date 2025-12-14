@@ -1,3 +1,4 @@
+from apps.notifications.services import send_leave_status_email
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -125,6 +126,7 @@ class LeaveRejectView(APIView):
         leave.rejection_reason = request.data.get("reason", "")
 
         leave.save()
+        send_leave_status_email(leave.user, leave)
 
         return Response(
             {

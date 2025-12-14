@@ -15,8 +15,6 @@ User = get_user_model()
 
 class UserFlatSerializer(serializers.ModelSerializer):
     prn = serializers.SerializerMethodField()
-    branch = serializers.SerializerMethodField()
-    hostel = serializers.SerializerMethodField()
     parents_name = serializers.SerializerMethodField()
     parents_number = serializers.SerializerMethodField()
 
