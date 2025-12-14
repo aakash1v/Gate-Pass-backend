@@ -141,8 +141,8 @@ class FullUserSerializer(serializers.ModelSerializer):
             s = obj.student_profile
             return {
                 "prn": s.prn,
-                "branch": s.branch,
-                "hostel": s.hostel,
+                # "branch": s.branch,
+                # "hostel": s.hostel,
                 "parents_name": s.parents_name,
                 "parents_number": s.parents_number,
             }
@@ -153,7 +153,7 @@ class FullUserSerializer(serializers.ModelSerializer):
         try:
             s = obj.staff_profile
             return {
-                "department": s.department,
+                # "department": s.department,
                 "role": s.role,
                 "admin_approved": s.admin_approved,
             }

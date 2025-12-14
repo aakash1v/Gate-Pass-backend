@@ -28,8 +28,6 @@ class UserFlatSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "prn",
-            "branch",
-            "hostel",
             "parents_name",
             "parents_number",
         )
