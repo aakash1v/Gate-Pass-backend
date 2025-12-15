@@ -12,6 +12,7 @@ class SignupSerializer(serializers.ModelSerializer):
     prn = serializers.CharField(required=False, allow_blank=True)
     parents_name = serializers.CharField(required=False, allow_blank=True)
     parents_number = serializers.CharField(required=False, allow_blank=True)
+    room_number = serializers.CharField(required=False, allow_blank=True)
 
     # Staff fields
     role = serializers.CharField(required=False, allow_blank=True)
@@ -33,6 +34,7 @@ class SignupSerializer(serializers.ModelSerializer):
             "prn",
             "parents_name",
             "parents_number",
+            "room_number",
 
             # staff profile
             "role",
@@ -131,6 +133,9 @@ class FullUserSerializer(serializers.ModelSerializer):
                 "prn": s.prn,
                 "parents_name": s.parents_name,
                 "parents_number": s.parents_number,
+                "hostel": s.hostel.name,
+                "room_number": s.room_number,
+                "department": s.department.name,
             }
         except:
             return None
@@ -139,7 +144,7 @@ class FullUserSerializer(serializers.ModelSerializer):
         try:
             s = obj.staff_profile
             return {
-                # "department": s.department,
+                "department": s.department.name,
                 "role": s.role,
                 "admin_approved": s.admin_approved,
             }

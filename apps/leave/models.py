@@ -1,13 +1,15 @@
-from apps.notifications.services import send_leave_status_email
 from django.db import models
 from django.utils import timezone
 import uuid
+
+from apps.notifications.services import send_leave_status_email
+from .utils import generate_gatepass_code
 
 
 class LeaveRequest(models.Model):
     TYPE_CHOICES = [
         ("Normal", "Normal"),
-        ("Urgent", "Urgent"),
+        ("Holiday", "Holiday"),
     ]
     FINAL_STATUS_CHOICES = [
         ("Pending", "Pending"),
@@ -34,8 +36,8 @@ class LeaveRequest(models.Model):
     approvedby_warden = models.BooleanField(default=False)
     approvedby_hod = models.BooleanField(default=False)
     approvedby_teacher = models.BooleanField(default=False)
-
-    final_status = models.CharField(max_length=150, default="Pending")
+    approvedby_dean = models.BooleanField(default=False)
+    approvedby_admin = models.BooleanField(default=False)
 
     starting_date = models.DateTimeField(null=True, blank=True)
     ending_date = models.DateTimeField(null=True, blank=True)
@@ -45,6 +47,8 @@ class LeaveRequest(models.Model):
     approvedby_teacher_at = models.DateTimeField(null=True, blank=True)
     approvedby_hod_at = models.DateTimeField(null=True, blank=True)
     approvedby_warden_at = models.DateTimeField(null=True, blank=True)
+    approvedby_dean_at = models.DateTimeField(null=True, blank=True)
+    approvedby_admin_at = models.DateTimeField(null=True, blank=True)
 
     rejected_by = models.ForeignKey(
         "users.User",
@@ -62,27 +66,34 @@ class LeaveRequest(models.Model):
     def __str__(self):
         return f"{self.subject} - {self.user.username}"
 
+    def should_be_approved(self):
+        if self.type == "Holiday":
+            return self.approvedby_warden
+
+        admin_approved = any(
+            [
+                self.approvedby_dean,
+                self.approvedby_hod,
+                self.approvedby_admin,
+            ]
+        )
+
+        return self.approvedby_warden and admin_approved
+
     def update_final_status(self):
-        if self.type == "Urgent":
-            if any(
-                [
-                    self.approvedby_teacher,
-                    self.approvedby_hod,
-                    self.approvedby_warden,
-                ]
-            ):
-                self.final_status = "Approved"
-                send_leave_status_email(self.user, self)
-        else:
-            if all(
-                [
-                    self.approvedby_teacher,
-                    self.approvedby_hod,
-                    self.approvedby_warden,
-                ]
-            ):
-                self.final_status = "Approved"
-                send_leave_status_email(self.user, self)
+        if self.is_rejected():
+            return
+
+        if self.should_be_approved():
+            self.final_status = "Approved"
+            self.save(update_fields=["final_status"])
+            send_leave_status_email(self.user, self)
+
+    def is_approved(self):
+        return self.final_status == "Approved"
+
+    def is_rejected(self):
+        return self.final_status == "Rejected"
 
 
 class GatePass(models.Model):
@@ -96,6 +107,12 @@ class GatePass(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
+        editable=False,
+    )
+    code = models.CharField(
+        max_length=20,
+        unique=True,
+        db_index=True,
         editable=False,
     )
 
@@ -135,11 +152,17 @@ class GatePass(models.Model):
 
     def is_valid(self):
         now = timezone.now()
-        return (
-            self.status == "Active"
-            and self.leave_request.is_approved()
-            and self.valid_from() <= now <= self.valid_until()
-        )
+
+        if self.status != "Active":
+            return False
+
+        if not self.leave_request.is_approved():
+            return False
+
+        if not self.valid_from() or not self.valid_until():
+            return False
+
+        return self.valid_from() <= now <= self.valid_until()
 
     def refresh_status(self):
         now = timezone.now()
@@ -148,6 +171,15 @@ class GatePass(models.Model):
             self.status = "Expired"
             self.save(update_fields=["status"])
 
+    def save(self, *args, **kwargs):
+        if not self.code:
+            while True:
+                code = generate_gatepass_code()
+                if not GatePass.objects.filter(code=code).exists():
+                    self.code = code
+                    break
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"GatePass {self.id} - {self.student}"
-

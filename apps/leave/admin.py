@@ -17,7 +17,7 @@ class LeaveRequestAdmin(admin.ModelAdmin):
 @admin.register(GatePass)
 class GatePassAdmin(admin.ModelAdmin):
     list_display = (
-        "id",
+        "code",
         "student",
         "get_leave_subject",
         "get_leave_status",
@@ -39,6 +39,7 @@ class GatePassAdmin(admin.ModelAdmin):
 
     readonly_fields = (
         "id",
+        "code",
         "issued_at",
     )
 

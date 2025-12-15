@@ -36,6 +36,7 @@ class Student(models.Model):
         blank=True,
         related_name="students"
     )
+    room_number = models.CharField(max_length=250, blank=True)
 
     def __str__(self):
         return f"{self.user.username} ({self.prn})"
@@ -57,6 +58,8 @@ class Staff(models.Model):
             ("hod", "HOD"),
             ("warden", "Warden"),
             ("dean", "Dean"),
+            ("admin", "Admin"),
+            ("security_guard", "Security Guard"),
             ("other", "Other"),
         ],
     )

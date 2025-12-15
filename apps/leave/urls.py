@@ -15,6 +15,6 @@ urlpatterns = [
         views.LeaveRejectView.as_view(),
         name="leave-reject",
     ),
-
+    path("gatepasses/", views.GatePassListAPIView.as_view(), name="gatepass-list"),
 
 ]
