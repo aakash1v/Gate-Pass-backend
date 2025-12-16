@@ -26,7 +26,7 @@ class SignupView(APIView):
 
         return Response(
             {
-                "message": "User created successfully",
+                "message": "Signup successful",
                 "user": {
                     "id": user.id,
                     "username": user.username,
