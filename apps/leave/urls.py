@@ -16,5 +16,11 @@ urlpatterns = [
         name="leave-reject",
     ),
     path("gatepasses/", views.GatePassListAPIView.as_view(), name="gatepass-list"),
+    path(
+        "student/gate-passes/",
+        views.StudentGatePassListAPIView.as_view(),
+        name="student-gate-pass-list",
+    ),
+
 
 ]

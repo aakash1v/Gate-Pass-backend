@@ -3,6 +3,7 @@ from django.utils import timezone
 import uuid
 
 from apps.notifications.services import send_leave_status_email
+from apps.notifications.background import send_email_async
 from .utils import generate_gatepass_code
 
 
@@ -87,7 +88,7 @@ class LeaveRequest(models.Model):
         if self.should_be_approved():
             self.final_status = "Approved"
             self.save(update_fields=["final_status"])
-            send_leave_status_email(self.user, self)
+            send_email_async(send_leave_status_email(self.user, self))
 
     def is_approved(self):
         return self.final_status == "Approved"

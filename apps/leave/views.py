@@ -175,3 +175,38 @@ class GatePassListAPIView(generics.ListAPIView):
             qs = qs.filter(status=status)
 
         return qs
+
+
+class StudentGatePassListAPIView(generics.ListAPIView):
+    serializer_class = GatePassListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsPagination
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Safety check: ensure user is a student
+        print(user)
+        if not hasattr(user, "student_profile"):
+            print("pass..")
+            return GatePass.objects.none()
+
+        qs = (
+            GatePass.objects.select_related(
+                "student",
+                "student__user",
+                "student__department",
+                "student__hostel",
+                "leave_request",
+            )
+            .filter(student=user.student_profile)
+            .order_by("-issued_at")
+        )
+
+        # Optional filter
+        status = self.request.query_params.get("status")
+        if status:
+            qs = qs.filter(status=status)
+
+        return qs
+
