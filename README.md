@@ -75,11 +75,26 @@ cd gate-pass-backend
 ## 2. Environment Configuration
 
 ```bash 
-Create a .env file in the root directory:
+ 
+# Django core
+SECRET_KEY=some-secret-key
 DEBUG=True
-SECRET_KEY=your_secret_key_here
-DATABASE_URL=postgres://user:password@localhost:5432/gate_pass_db
-ALLOWED_HOSTS=127.0.0.1,localhost
+
+# Hosts
+ALLOWED_HOSTS=
+CSRF_TRUSTED_ORIGINS=
+CORS_ALLOWED_ORIGINS=
+
+# JWT timing (minutes)
+ACCESS_TOKEN_LIFETIME=60
+REFRESH_TOKEN_LIFETIME=7
+
+DB_NAME=your database name 
+DB_USER=postgres
+DB_PASSWORD=password
+DB_HOST=localhost
+DB_PORT=5432
+EMAIL_APP_PASSWORD=
 ```
 ## 3. Install Dependencies
 ```bash 
@@ -100,31 +115,6 @@ This project uses **uv** for fast and reliable dependency management.
 ```bash
 git clone [https://github.com/yourusername/gate-pass-backend.git](https://github.com/yourusername/gate-pass-backend.git)
 cd gate-pass-backend
-
-2. Environment Configuration
-
-Create a .env file in the root directory:
-Code snippet
-```bash 
-# Django core
-SECRET_KEY=some-secret-key
-DEBUG=True
-
-# Hosts
-ALLOWED_HOSTS=
-CSRF_TRUSTED_ORIGINS=
-CORS_ALLOWED_ORIGINS=
-
-# JWT timing (minutes)
-ACCESS_TOKEN_LIFETIME=60
-REFRESH_TOKEN_LIFETIME=7
-
-DB_NAME=your database name 
-DB_USER=postgres
-DB_PASSWORD=password
-DB_HOST=localhost
-DB_PORT=5432
-EMAIL_APP_PASSWORD=
 
 ```
 
